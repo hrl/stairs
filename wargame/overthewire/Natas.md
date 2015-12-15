@@ -171,3 +171,53 @@ if($key != "") {
 ```text
 U82q5TCMMQ9xuFoI3dYX61s7OZD9JKoK
 ```
+
+### Level11
+PHP源码，只贴核心部分
+```php
+<?
+$defaultdata = array( "showpassword"=>"no", "bgcolor"=>"#ffffff");
+function xor_encrypt($in) {
+    $key = '<censored>';
+    $text = $in;
+    $outText = '';
+    // Iterate through each character
+    for($i=0;$i<strlen($text);$i++) {
+    $outText .= $text[$i] ^ $key[$i % strlen($key)];
+    }
+    return $outText;
+}
+function saveData($d) {
+    setcookie("data", base64_encode(xor_encrypt(json_encode($d))));
+}
+
+if($data["showpassword"] == "yes") {
+    print "The password for natas12 is <censored><br>";
+}
+?>
+```
+根据key做了一个简单的xor加密
+
+加密后的数据为 `ClVLIh4ASCsCBE8lAxMacFMZV2hdVVotEhhUJQNVAmhSEV4sFxFeaAw=`
+
+加密前的数据为 `{"showpassword":"no","bgcolor":"#ffffff"}`
+
+于是运行以下python代码尝试得到key
+```python
+import base64
+data = b'{"showpassword":"no","bgcolor":"#ffffff"}'
+data_xor = base64.b64decode("ClVLIh4ASCsCBE8lAxMacFMZV2hdVVotEhhUJQNVAmhSEV4sFxFeaAw=")
+
+xor_enc = lambda x, y: x ^ y
+key = bytes(map(xor_enc, data, data_xor))
+```
+算出 `qw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jq` 得到key `qw8J`
+
+将data修改为 `{"showpassword":"yes","bgcolor":"#ffffff"}` 
+
+用算出的key加密得到新的cookie `ClVLIh4ASCsCBE8lAxMacFMOXTlTWxooFhRXJh4FGnBTVF4sFxFeLFMK`
+
+用新的cookie访问得到natas12的密码
+```html
+The password for natas12 is EDXp0pS26wLKHZy1rDBPUZk0RKfLGIR3
+```
