@@ -120,7 +120,7 @@ for i in range(len(secret_encoded) // 2):
     ))
 
 secret_hex.reverse()
-secret_base64 = "".join(map(chr, secret_hex))
+secret_base64 = bytes(secret_hex)
 secret = base64.standard_b64decode(secret_base64)
 ```
 得到 `oubWYf2kBq` ，提交后得到natas9的密码
