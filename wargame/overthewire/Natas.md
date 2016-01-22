@@ -290,3 +290,29 @@ passthru("cat /etc/natas_webpass/natas14");
 ```text
 Lg96M10TdfaPyVBkJdjymbllQ5L6qdl1
 ```
+
+### Level14
+PHP源码
+```php
+<? 
+if(array_key_exists("username", $_REQUEST)) { 
+    $link = mysql_connect('localhost', 'natas14', '<censored>'); 
+    mysql_select_db('natas14', $link); 
+     
+    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\" and password=\"".$_REQUEST["password"]."\""; 
+    if(array_key_exists("debug", $_GET)) { 
+        echo "Executing query: $query<br>"; 
+    } 
+
+    if(mysql_num_rows(mysql_query($query, $link)) > 0) { 
+            echo "Successful login! The password for natas15 is <censored><br>"; 
+    } else { 
+            echo "Access denied!<br>"; 
+    } 
+    mysql_close($link); 
+}
+```
+只需要这个SQL语句有结果就行了，于是username里填上`" OR 1=1;#`让这个语句返回所有结果，password随便打点什么上去。得到natas15的密码
+```text
+AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J
+```
