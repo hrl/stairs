@@ -784,3 +784,24 @@ if(array_key_exists("submit", $_REQUEST)) {
 ```text
 chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ
 ```
+
+###Level22
+PHP源码
+```php
+if(array_key_exists("revelio", $_GET)) { 
+    // only admins can reveal the password 
+    if(!($_SESSION and array_key_exists("admin", $_SESSION) and $_SESSION["admin"] == 1)) { 
+    header("Location: /"); 
+    } 
+}
+
+if(array_key_exists("revelio", $_GET)) { 
+    print "You are an admin. The credentials for the next level are:<br>"; 
+    print "<pre>Username: natas23\n"; 
+    print "Password: <censored></pre>"; 
+}
+```
+url里加个?revelio=1就行，Postman/Burp或者写脚本不自动跟随重定向就可以看到密码。拿到natas23的密码
+```text
+D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
+```
