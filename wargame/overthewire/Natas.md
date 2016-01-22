@@ -427,7 +427,7 @@ if($key != "") {
 }
 ?>
 ```
-把大部分特殊字符都过滤了，不过\$key是包在双引号里的，所以可以用\$(statements)的方式来执行语句返回一个结果到$key里，其余的思路跟上一题差不多
+把大部分特殊字符都过滤了，不过$key是包在双引号里的，所以可以用$(statements)的方式来执行语句返回一个结果到$key里，其余的思路跟上一题差不多
 ```python
 import string
 import urllib.request
