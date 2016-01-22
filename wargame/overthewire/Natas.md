@@ -769,3 +769,18 @@ if(array_key_exists("name", $_SESSION)) {
 ```text
 IFekPyrQXftziDEsUr3x21sYuahypdgJ
 ```
+
+###Level21
+按他的指示去隔壁，PHP源码，只贴核心部分
+```php
+// if update was submitted, store it 
+if(array_key_exists("submit", $_REQUEST)) { 
+    foreach($_REQUEST as $key => $val) { 
+    $_SESSION[$key] = $val; 
+    } 
+}
+```
+直接在表单里加个admin项，填1就行了…拿到natas22的密码
+```text
+chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ
+```
