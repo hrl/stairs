@@ -805,3 +805,22 @@ url里加个?revelio=1就行，Postman/Burp或者写脚本不自动跟随重定�
 ```text
 D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
 ```
+
+###Level23
+PHP源码
+```php
+if(array_key_exists("passwd",$_REQUEST)){
+    if(strstr($_REQUEST["passwd"],"iloveyou") && ($_REQUEST["passwd"] > 10 )){
+        echo "<br>The credentials for the next level are:<br>";
+        echo "<pre>Username: natas24 Password: <censored></pre>";
+    }
+    else{
+        echo "<br>Wrong!<br>";
+    }
+}
+// morla / 10111
+```
+尴尬的隐式类型转换…填`11iloveyou`就好。拿到natas24的密码
+```text
+OsRmXFguozKpTZZ5X14zNO43379LZveg
+```
