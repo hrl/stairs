@@ -824,3 +824,22 @@ if(array_key_exists("passwd",$_REQUEST)){
 ```text
 OsRmXFguozKpTZZ5X14zNO43379LZveg
 ```
+
+###Level24
+PHP源码
+```php
+if(array_key_exists("passwd",$_REQUEST)){
+    if(!strcmp($_REQUEST["passwd"],"<censored>")){
+        echo "<br>The credentials for the next level are:<br>";
+        echo "<pre>Username: natas25 Password: <censored></pre>";
+    }
+    else{
+        echo "<br>Wrong!<br>";
+    }
+}
+// morla / 10111
+```
+看看文档`http://php.net/manual/en/function.strcmp.php`发现这么一句`strcmp("foo", array()) => NULL + PHP Warning`，然后就把passwd改成passwd[]，不填内容提交，会出现Warning和密码。拿到natas25的密码
+```text
+GHF6X7YwACaYYssHVY05cFq83hRktl4c
+```
