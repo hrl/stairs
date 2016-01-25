@@ -839,7 +839,61 @@ if(array_key_exists("passwd",$_REQUEST)){
 }
 // morla / 10111
 ```
-看看文档`http://php.net/manual/en/function.strcmp.php`发现这么一句`strcmp("foo", array()) => NULL + PHP Warning`，然后就把passwd改成passwd[]，不填内容提交，会出现Warning和密码。拿到natas25的密码
+看看[文档](http://php.net/manual/en/function.strcmp.php)，发现这么一句`strcmp("foo", array()) => NULL + PHP Warning`，然后就把passwd改成passwd[]，不填内容提交，会出现Warning和密码。拿到natas25的密码
 ```text
 GHF6X7YwACaYYssHVY05cFq83hRktl4c
+```
+
+###Level25
+PHP源码
+```php
+// cheers and <3 to malvina
+// - morla
+
+function setLanguage(){
+    /* language setup */
+    if(array_key_exists("lang",$_REQUEST))
+        if(safeinclude("language/" . $_REQUEST["lang"] ))
+            return 1;
+    safeinclude("language/en"); 
+}
+    
+function safeinclude($filename){
+    // check for directory traversal
+    if(strstr($filename,"../")){
+        logRequest("Directory traversal attempt! fixing request.");
+        $filename=str_replace("../","",$filename);
+    }
+    // dont let ppl steal our passwords
+    if(strstr($filename,"natas_webpass")){
+       logRequest("Illegal file access detected! Aborting!");
+        exit(-1);
+    }
+    // add more checks...
+
+    if (file_exists($filename)) { 
+        include($filename);
+        return 1;
+    }
+    return 0;
+}
+    
+function logRequest($message){
+    $log="[". date("d.m.Y H::i:s",time()) ."]";
+    $log=$log . " " . $_SERVER['HTTP_USER_AGENT'];
+    $log=$log . " \"" . $message ."\"\n"; 
+    $fd=fopen("/tmp/natas25_" . session_id() .".log","a");
+    fwrite($fd,$log);
+    fclose($fd);
+}
+```
+注意到网页内容是include进来的，而且logRequest内有一个可以让我们填任意字符的地方，那么下一步就是想办法让它include进来这个log文件。
+
+检查目录遍历的函数里只替换了一次`../`，所以如果我们输入`....//`的话，替换之后就变成了`../`，多重复几次就可以到达根目录，然后访问到log文件了。
+
+最后在UA里插一段`<?php include('/etc/natas_webpass/natas26') ?>`就可以拿到密码了。
+
+拿到natas26的密码
+```text
+oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
 ```
