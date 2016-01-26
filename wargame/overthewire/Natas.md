@@ -976,3 +976,116 @@ echo urlencode(base64_encode(serialize(new Logger(""))));
 ```text
 55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ
 ```
+
+###Level27
+PHP源码
+```php
+// morla / 10111 
+// database gets cleared every 5 min 
+
+/* 
+CREATE TABLE `users` ( 
+  `username` varchar(64) DEFAULT NULL, 
+  `password` varchar(64) DEFAULT NULL 
+); 
+*/ 
+
+
+function checkCredentials($link,$usr,$pass){ 
+    $user=mysql_real_escape_string($usr); 
+    $password=mysql_real_escape_string($pass); 
+     
+    $query = "SELECT username from users where username='$user' and password='$password' "; 
+    $res = mysql_query($query, $link); 
+    if(mysql_num_rows($res) > 0){ 
+        return True; 
+    } 
+    return False; 
+} 
+
+function validUser($link,$usr){ 
+    $user=mysql_real_escape_string($usr); 
+     
+    $query = "SELECT * from users where username='$user'"; 
+    $res = mysql_query($query, $link); 
+    if($res) { 
+        if(mysql_num_rows($res) > 0) { 
+            return True; 
+        } 
+    } 
+    return False; 
+} 
+
+function dumpData($link,$usr){ 
+    $user=mysql_real_escape_string($usr); 
+     
+    $query = "SELECT * from users where username='$user'"; 
+    $res = mysql_query($query, $link); 
+    if($res) { 
+        if(mysql_num_rows($res) > 0) { 
+            while ($row = mysql_fetch_assoc($res)) { 
+                //thanks to Gobo for reporting this bug! 
+                //return print_r($row); 
+                return print_r($row,true); 
+            } 
+        } 
+    } 
+    return False; 
+} 
+
+function createUser($link, $usr, $pass){ 
+    $user=mysql_real_escape_string($usr); 
+    $password=mysql_real_escape_string($pass); 
+     
+    $query = "INSERT INTO users (username,password) values ('$user','$password')"; 
+    $res = mysql_query($query, $link); 
+    if(mysql_affected_rows() > 0){ 
+        return True; 
+    } 
+    return False; 
+} 
+
+
+if(array_key_exists("username", $_REQUEST) and array_key_exists("password", $_REQUEST)) { 
+    $link = mysql_connect('localhost', 'natas27', '<censored>'); 
+    mysql_select_db('natas27', $link); 
+    
+
+    if(validUser($link,$_REQUEST["username"])) { 
+        //user exists, check creds 
+        if(checkCredentials($link,$_REQUEST["username"],$_REQUEST["password"])){ 
+            echo "Welcome " . htmlentities($_REQUEST["username"]) . "!<br>"; 
+            echo "Here is your data:<br>"; 
+            $data=dumpData($link,$_REQUEST["username"]); 
+            print htmlentities($data); 
+        } 
+        else{ 
+            echo "Wrong password for user: " . htmlentities($_REQUEST["username"]) . "<br>"; 
+        }         
+    }  
+    else { 
+        //user doesn't exist 
+        if(createUser($link,$_REQUEST["username"],$_REQUEST["password"])){  
+            echo "User " . htmlentities($_REQUEST["username"]) . " was created!"; 
+        } 
+    } 
+
+    mysql_close($link); 
+}
+```
+大概是看一下有没有这个用户名，有的话检测用户名和密码这一对数据是否存在，如果存在就去拿用户名对应的数据；如果没有这个用户名就创建一个新的。
+
+那么下一步要做的应该是自己插一个`natas28`用户进去了…然而这代码并没有可以让我们注入的地方…尴尬…
+
+看了看开头的注释，`username`长度只有64，然后翻了翻MySQL的[文档](https://dev.mysql.com/doc/refman/5.0/en/char.html)，注意到
+```text
+Before MySQL 5.0.3, trailing spaces are removed from values when they are stored into a VARCHAR column; this means that the spaces also are absent from retrieved values.
+```
+也就是说后面的空格会被删掉，于是尝试令`username`=`natas28`+57个空格，发现此时还是会当`natas28`处理。
+
+然后尝试令`username`=`natas28`+57个空格+1个任意字符，`password`留空，这时`validUser`返回了`False`，于是系统会尝试插入这个用户，首先末尾超出的字符被截断，只留下`natas28`+57个空格，然后末尾空格被删掉，只留下`natas28`。这样就成功插入了一个新的`natas28`用户。
+
+最后拿到`natas28`的密码
+```text
+JWwR438wkgTsNKBbcJoowyysdM82YjeF
+```
