@@ -643,11 +643,6 @@ This page uses mostly the same code as the previous level, but session IDs are n
 ```
 大概是`3x3x3x2d61646d696e`的感觉，剩下的部分跟上一题一样了
 ```python
-import socks
-import socket
-socks.set_default_proxy(socks.SOCKS5, "localhost", 23363)
-socket.socket = socks.socksocket
-
 import urllib.request
 import urllib.parse
 from multiprocessing import Pool
