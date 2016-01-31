@@ -1,5 +1,7 @@
 # Natas
 
+View in Blog: [OverTheWire Natas 0-27](http://blog.pandas.moe/2016/01/26/overthewire-natas-0-27/)
+
 ### Level0
 
 查看页面源码，可以看到
