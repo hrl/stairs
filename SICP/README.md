@@ -1,3 +1,3 @@
 # SICP
 
-课后习题
+Moved to [hrl/SICP](https://github.com/hrl/SICP)
